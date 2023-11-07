@@ -1,0 +1,65 @@
+version: '3.8'
+
+networks:
+  3dprint:
+  proxy:
+    name: infra_proxy
+    external: true
+
+services:
+  spoolman:
+    image: ghcr.io/donkie/spoolman:latest
+    container_name: spoolman
+    restart: unless-stopped
+    security_opt:
+      - no-new-privileges:true
+    networks:
+      - 3dprint 
+      - proxy
+    #ports:
+    #  - "8000:8000"
+    volumes:
+      - ./data/spoolman:/home/app/.local/share/spoolman
+    environment:
+      - TZ=${TZ} # Optional, defaults to UTC
+      - SPOOLMAN_DB_TYPE=postgres 	# Type of database, any of: postgres, mysql, sqlite, cockroachdb
+      - SPOOLMAN_DB_HOST=spoolman-db
+      - SPOOLMAN_DB_PORT 	# Database port
+      - SPOOLMAN_DB_NAME=${POSTGRES_DB}
+      - SPOOLMAN_DB_USERNAME=${POSTGRES_USER}
+      # - SPOOLMAN_DB_PASSWORD_FILE  # Path of file which contains the database password. Can be used instead of SPOOLMAN_DB_PASSWORD if desired.
+      - SPOOLMAN_DB_PASSWORD=${POSTGRES_PASSWORD}
+      # - SPOOLMAN_DB_QUERY # Query parameters for the database connection, e.g. set to unix_socket=/path/to/mysql.sock to connect using a MySQL socket.
+      # - SPOOLMAN_LOGGING_LEVEL # Logging level, any of: CRITICAL, ERROR, WARNING, INFO, DEBUG, defaults to INFO.
+      # - SPOOLMAN_AUTOMATIC_BACKUP # Automatic nightly DB backups for SQLite databases. Enabled by default, set to FALSE to disable.
+    labels:
+      - "traefik.enable=true"
+      - "traefik.docker.network=infra_proxy"
+      ## HTTP Routers
+      - "traefik.http.routers.spoolman-rtr.entrypoints=websecure"
+      - "traefik.http.routers.spoolman-rtr.rule=Host(`spoolman.${DOMAINNAME}`)"
+      - "traefik.http.routers.spoolman-rtr.tls=true"
+      ## HTTP Services
+      - "traefik.http.routers.spoolman-rtr.service=spoolman-svc"
+      - "traefik.http.services.spoolman-svc.loadbalancer.server.port=8000"
+
+  spoolman-db:
+    image: postgres:14
+    container_name: spoolman-db
+    networks:
+      - 3dprint
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
+      start_period: 20s
+      interval: 30s
+      retries: 5
+      timeout: 5s
+    volumes:
+      - ./data/postgres/:/var/lib/postgresql/data
+    environment:
+      - POSTGRES_DB=${POSTGRES_DB}
+      - POSTGRES_USER=${POSTGRES_USER}
+      - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
+    labels:
+      - traefik.enable=false
