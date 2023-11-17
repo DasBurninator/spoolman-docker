@@ -17,7 +17,7 @@ services:
       - TZ=${TZ} # Optional, defaults to UTC
       - SPOOLMAN_DB_TYPE=postgres 	# Type of database, any of: postgres, mysql, sqlite, cockroachdb
       - SPOOLMAN_DB_HOST=spoolman-db
-      # - SPOOLMAN_DB_PORT  # Database port
+      # - SPOOLMAN_DB_PORT=5432  # Database port
       - SPOOLMAN_DB_NAME=${POSTGRES_DB}
       - SPOOLMAN_DB_USERNAME=${POSTGRES_USER}
       # - SPOOLMAN_DB_PASSWORD_FILE  # Path of file which contains the database password. Can be used instead of SPOOLMAN_DB_PASSWORD if desired.
