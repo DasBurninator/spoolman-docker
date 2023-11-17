@@ -1,8 +1,5 @@
 version: '3.8'
 
-networks:
-  3dprint:
-
 services:
   spoolman:
     image: ghcr.io/donkie/spoolman:latest
@@ -10,8 +7,6 @@ services:
     restart: unless-stopped
     security_opt:
       - no-new-privileges:true
-    networks:
-      - 3dprint
     ports:
       - "8000:8000"
     volumes:
@@ -32,8 +27,6 @@ services:
   spoolman-db:
     image: postgres:14
     container_name: spoolman-db
-    networks:
-      - 3dprint
     restart: unless-stopped
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -d ${POSTGRES_DB} -U ${POSTGRES_USER}"]
