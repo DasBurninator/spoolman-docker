@@ -5,6 +5,7 @@ services:
     image: ghcr.io/donkie/spoolman:latest
     container_name: spoolman
     restart: unless-stopped
+    depends_on: spoolman-db
     security_opt:
       - no-new-privileges:true
     ports:
@@ -15,7 +16,7 @@ services:
       - TZ=${TZ} # Optional, defaults to UTC
       - SPOOLMAN_DB_TYPE=postgres 	# Type of database, any of: postgres, mysql, sqlite, cockroachdb
       - SPOOLMAN_DB_HOST=spoolman-db
-      - SPOOLMAN_DB_PORT 	# Database port
+      # - SPOOLMAN_DB_PORT  # Database port
       - SPOOLMAN_DB_NAME=${POSTGRES_DB}
       - SPOOLMAN_DB_USERNAME=${POSTGRES_USER}
       # - SPOOLMAN_DB_PASSWORD_FILE  # Path of file which contains the database password. Can be used instead of SPOOLMAN_DB_PASSWORD if desired.
@@ -40,19 +41,3 @@ services:
       - POSTGRES_DB=${POSTGRES_DB}
       - POSTGRES_USER=${POSTGRES_USER}
       - POSTGRES_PASSWORD=${POSTGRES_PASSWORD}
-
-  ## Portainer - WebUI for Containers
-  portainer:
-    container_name: portainer
-    image: portainer/portainer-ce:latest
-    restart: unless-stopped
-    security_opt:
-      - no-new-privileges:true
-    command: -H unix:///var/run/docker.sock
-    ports:
-      - 9000:9000
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro # # Use Docker Socket Proxy instead for improved security
-      - ./data/portainer/data:/data # Change to local directory if you want to save/transfer config locally
-    environment:
-      - TZ=${TZ}
