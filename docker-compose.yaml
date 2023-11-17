@@ -5,7 +5,8 @@ services:
     image: ghcr.io/donkie/spoolman:latest
     container_name: spoolman
     restart: unless-stopped
-    depends_on: spoolman-db
+    depends_on: 
+      - spoolman-db
     security_opt:
       - no-new-privileges:true
     ports:
